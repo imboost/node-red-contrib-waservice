@@ -1,0 +1,36 @@
+[
+    {
+        "id": "50b98ea7504c230a",
+        "type": "inject",
+        "z": "6bbcc5aaf0677fa4",
+        "name": "",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "to",
+                "v": "6282217401686",
+                "vt": "str"
+            },
+            {
+                "p": "message",
+                "v": "This is from node-red local multi node",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "send",
+        "x": 150,
+        "y": 400,
+        "wires": [
+            [
+                "7bf35505a9f66f67"
+            ]
+        ]
+    }
+]
