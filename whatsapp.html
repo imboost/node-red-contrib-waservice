@@ -6,11 +6,32 @@
 </script>
 
 <script type="text/html" data-help-name="whatsapp">
-    <br/>
     <p>
         <b>About</b>
         <br/>
-        <span>Activate Whatsapp</span>
+        <span>This node use for authenticate and send whatsapp message using node-red</span>
+    </p>
+    <p>
+        <strong>Authentication</strong>
+        <br/>
+        <span>You need to provide "connect" as a topic in function or inject node.</span>
+        <br/><br/>
+        <code>
+            msg.topic = "connect"
+        </code>
+        <span>This will return a picture with base64 format. You can see it by adding picture node.</span>
+    </p>
+    <p>
+        <strong>Sending Message</strong>
+        <br/>
+        <span>You need to provide "send" as a topic, phone number and your message in function or inject node.</span>
+        <br/><br/>
+        <code>
+            msg.topic = "send"
+            msg.to = "phone number example: 601247900"
+            msg.message = "This is whatsapp message from node-red"
+        </code>
+        <span>This will return success or error information.</span>
     </p>
 </script>
 
