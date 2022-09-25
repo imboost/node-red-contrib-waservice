@@ -1,4 +1,4 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 
 module.exports = function (RED) {
@@ -32,33 +32,49 @@ module.exports = function (RED) {
 
         client.initialize();
 
-        node.on('input', function (msg) {
+        node.on('input', async function (msg) {
             if (msg.topic === "connect") {
                 client.on('qr', qr => {
                     qrcode.toDataURL(qr, function (err, url) {
                         msg.payload = url;
 
-                        node.send([msg, null]);
+                        node.send([msg, null, null]);
 
                         if (err) {
-                            node.send([err, null]);
+                            node.send([err, null, null]);
                         }
                     });
                 });
             }
 
-            if (msg.topic === "send") {
+            if (msg.topic === "send_text") {
                 var number = msg.to;
                 var message = msg.message;
 
                 client.sendMessage(number + "@c.us", message).then(response => {
                     msg.payload = response;
 
-                    node.send([null, msg]);
+                    node.send([null, msg, null]);
                 }).catch(err => {
                     msg.payload = err;
 
-                    node.send([null, msg]);
+                    node.send([null, msg, null]);
+                });
+            }
+
+            if (msg.topic === "send_media_url") {
+                var number = msg.to;
+                var message = msg.message;
+                const media = await MessageMedia.fromUrl(msg.message);
+
+                client.sendMessage(number + "@c.us", media).then(response => {
+                    msg.payload = response;
+
+                    node.send([null, null, msg]);
+                }).catch(err => {
+                    msg.payload = err;
+
+                    node.send([null, null, msg]);
                 });
             }
         });
