@@ -1,4 +1,4 @@
-const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia, List } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 
 module.exports = function (RED) {
@@ -13,14 +13,14 @@ module.exports = function (RED) {
             puppeteer: {
                 headless: true,
                 args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
+                    '--no-sandbox'
+                    // '--disable-setuid-sandbox',
+                    // '--disable-dev-shm-usage',
+                    // '--disable-accelerated-2d-canvas',
+                    // '--no-first-run',
+                    // '--no-zygote',
                     // '--single-process', // <- this one doesn't works in Windows
-                    '--disable-gpu'
+                    // '--disable-gpu'
                 ],
             },
             authStrategy: new LocalAuth({ clientId: node.id })
@@ -51,7 +51,7 @@ module.exports = function (RED) {
                 var number = msg.to;
                 var message = msg.message;
 
-                client.sendMessage(number + "@c.us", message).then(response => {
+                client.sendMessage(number + "@c.us", message, { linkPreview: true }).then(response => {
                     msg.payload = response;
 
                     node.send([null, msg, null]);

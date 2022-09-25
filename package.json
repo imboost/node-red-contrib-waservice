@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-waservice",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Whatsapp Service",
   "author": "ETTER Developer",
   "email": "info@etter.cloud",
