@@ -21,3 +21,7 @@ or
 
 ## Usage
 This package can use to authenticate your whatsapp and send the message with node-red.
+
+### Authentication
+To authenticate you whatsapp account yo need to use inject, whatsapp and image viewer node with the topic = "connect"
+![Plugin in action](https://github.com/imboost/node-red-contrib-waservice/blob/main/waservice_authentication.png?raw=true)
