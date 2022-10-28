@@ -2,8 +2,6 @@ const { Client, LocalAuth, MessageMedia} = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 
 module.exports = function (RED) {
-    // If doesn't work put client init here 
-
     function whatsapp(config) {
         RED.nodes.createNode(this, config);
         var node = this;
@@ -13,9 +11,9 @@ module.exports = function (RED) {
             puppeteer: {
                 headless: true,
                 args: [
-                    '--no-sandbox'
-                    // '--disable-setuid-sandbox',
-                    // '--disable-dev-shm-usage',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
                     // '--disable-accelerated-2d-canvas',
                     // '--no-first-run',
                     // '--no-zygote',
@@ -29,6 +27,10 @@ module.exports = function (RED) {
         client.on('ready', () => {
             node.send([null, 'Whatsapp Ready!']);
         });
+
+        client.on('message', message => {
+            node.send([null, message.body]);
+        }); 
 
         client.initialize();
 
