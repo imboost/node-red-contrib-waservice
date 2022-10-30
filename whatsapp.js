@@ -1,4 +1,4 @@
-const { Client, LocalAuth, MessageMedia} = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 
 module.exports = function (RED) {
@@ -12,8 +12,8 @@ module.exports = function (RED) {
                 headless: true,
                 args: [
                     '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
+                    // '--disable-setuid-sandbox',
+                    // '--disable-dev-shm-usage',
                     // '--disable-accelerated-2d-canvas',
                     // '--no-first-run',
                     // '--no-zygote',
@@ -21,34 +21,46 @@ module.exports = function (RED) {
                     // '--disable-gpu'
                 ],
             },
+
             authStrategy: new LocalAuth({ clientId: node.id })
         });
 
+        client.on('qr', qr => {
+            qrcode.toDataURL(qr, function (err, url) {
+                var msg = {
+                    "payload": url
+                }
+
+                node.send([msg, null]);
+
+                if (err) {
+                    node.send([err, null]);
+                }
+            });
+        });
+
         client.on('ready', () => {
-            node.send([null, 'Whatsapp Ready!']);
+            var msg = {
+                "payload": "Whatsapp ready!"
+            }
+            node.send([null, msg]);
         });
 
         client.on('message', message => {
-            node.send([null, message.body]);
-        }); 
+            var from = message.from;
+            from = from.replace(/\@c.us/g,'');
+            
+            var msg = {
+                "from": from,
+                "payload": message.body
+            }
+
+            node.send([null, msg]);
+        });
 
         client.initialize();
 
         node.on('input', async function (msg) {
-            if (msg.topic === "connect") {
-                client.on('qr', qr => {
-                    qrcode.toDataURL(qr, function (err, url) {
-                        msg.payload = url;
-
-                        node.send([msg, null]);
-
-                        if (err) {
-                            node.send([err, null]);
-                        }
-                    });
-                });
-            }
-
             if (msg.topic === "send_text") {
                 var number = msg.to;
                 var message = msg.message;
