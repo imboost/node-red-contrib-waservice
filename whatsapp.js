@@ -25,55 +25,174 @@ module.exports = function (RED) {
             authStrategy: new LocalAuth({ clientId: node.id })
         });
 
+        client.initialize();
+
+        client.on('loading_screen', (percent, message) => {
+            var msg = {
+                "status": "loading",
+                "payload": message,
+                "percent": percent
+            }
+
+            node.send([msg, null]);
+        });
+
         client.on('qr', qr => {
             qrcode.toDataURL(qr, function (err, url) {
                 var msg = {
+                    "status": "Success",
                     "payload": url
                 }
 
                 node.send([msg, null]);
 
                 if (err) {
-                    node.send([err, null]);
+                    var msg = {
+                        "status": "Error",
+                        "payload": err
+                    }
+
+                    node.send([msg, null]);
                 }
             });
         });
 
+        client.on('authenticated', () => {
+            var msg = {
+                "status": "authenticated",
+                "payload": "Authenticated"
+            }
+
+            node.send([null, msg]);
+        });
+
+        client.on('auth_failure', msg => {
+            var msg = {
+                "status": "auth_fail",
+                "payload": msg
+            }
+
+            node.send([null, msg]);
+        });
+
         client.on('ready', () => {
             var msg = {
+                "status": "ready",
                 "payload": "Whatsapp ready!"
             }
+
             node.send([null, msg]);
         });
 
-        client.on('message', message => {
+        client.on('message', async message => {
             var from = message.from;
-            from = from.replace(/\@c.us/g,'');
-            
-            var msg = {
-                "from": from,
-                "payload": message.body
+            from = from.replace(/\@c.us/g, '');
+
+            if (message.hasMedia) {
+                const media = await message.downloadMedia();
+
+                var msg = {
+                    "status": "incoming",
+                    "from": from,
+                    "payload": message,
+                    "media": media
+                }
+            } else {
+                var msg = {
+                    "status": "incoming",
+                    "from": from,
+                    "payload": message
+                }
             }
 
             node.send([null, msg]);
         });
 
-        client.initialize();
-
         node.on('input', async function (msg) {
+            if (msg.topic === "get_chats") {
+                const response = await client.getChats();
+
+                msg.status = "get_chats";
+                msg.payload = response;
+
+                node.send([null, msg]);
+            }
+
+            if (msg.topic === "get_chat_byid") {
+                const response = await client.getChatById(msg.id);
+
+                msg.status = "get_chat_byid";
+                msg.payload = response;
+
+                node.send([null, msg]);
+            }
+
+            if (msg.topic === "fetch_messages") {
+                const response = await client.getChatById(msg.id);
+                var messages = await response.fetchMessages({ limit: 99999 });
+
+                msg.status = "fetch_messages";
+                msg.payload = messages;
+
+                node.send([null, msg]);
+            }
+
+            if (msg.topic === "get_contacts") {
+                const response = await client.getContacts();
+
+                msg.status = "get_contacts";
+                msg.payload = response;
+
+                node.send([null, msg]);
+            }
+
             if (msg.topic === "send_text") {
                 var number = msg.to;
                 var message = msg.message;
 
                 client.sendMessage(number + "@c.us", message, { linkPreview: true }).then(response => {
+                    msg.status = "send_text";
                     msg.payload = response;
 
                     node.send([null, msg]);
                 }).catch(err => {
+                    msg.status = "error_send_text";
                     msg.payload = err;
 
                     node.send([null, msg]);
                 });
+            }
+
+            if (msg.topic === "send_media_base64") {
+                var number = msg.to;
+                var message = msg.message;
+                const media = new MessageMedia('image/png', msg.message);
+
+                if (msg.caption === undefined) {
+                    client.sendMessage(number + "@c.us", media).then(response => {
+                        msg.status = "send_media_base64";
+                        msg.payload = response;
+
+                        node.send([null, msg]);
+                    }).catch(err => {
+                        msg.status = "error_send_media_base64";
+                        msg.payload = err;
+
+                        node.send([null, msg]);
+                    });
+                } else {
+                    client.sendMessage(number + "@c.us", media, { "caption": msg.caption }).then(response => {
+                        msg.status = "send_media_base64";
+                        msg.payload = response;
+
+                        node.send([null, msg]);
+                    }).catch(err => {
+                        msg.status = "error_send_media_base64";
+                        msg.payload = err;
+
+                        node.send([null, msg]);
+                    });
+                }
             }
 
             if (msg.topic === "send_media_url") {
@@ -81,15 +200,31 @@ module.exports = function (RED) {
                 var message = msg.message;
                 const media = await MessageMedia.fromUrl(msg.message);
 
-                client.sendMessage(number + "@c.us", media).then(response => {
-                    msg.payload = response;
+                if (msg.caption === undefined) {
+                    client.sendMessage(number + "@c.us", media).then(response => {
+                        msg.status = "send_media_url";
+                        msg.payload = response;
 
-                    node.send([null, msg]);
-                }).catch(err => {
-                    msg.payload = err;
+                        node.send([null, msg]);
+                    }).catch(err => {
+                        msg.status = "error_send_media_url";
+                        msg.payload = err;
 
-                    node.send([null, msg]);
-                });
+                        node.send([null, msg]);
+                    });
+                } else {
+                    client.sendMessage(number + "@c.us", media, { "caption": msg.caption }).then(response => {
+                        msg.status = "send_media_url";
+                        msg.payload = response;
+
+                        node.send([null, msg]);
+                    }).catch(err => {
+                        msg.status = "error_send_media_url";
+                        msg.payload = err;
+
+                        node.send([null, msg]);
+                    });
+                }
             }
         });
     }
