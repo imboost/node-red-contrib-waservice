@@ -23,4 +23,4 @@ npm install github:ReforwardDev/whatsapp-web.js#patch-1
 Everytime deploy new nodes, node-red must restart to re init the whatsapp.
 
 ## Example
-This package can use to authenticate your whatsapp, send and receive the message with node-red. Import the example from this https://gist.githubusercontent.com/taufiksu/ad724c5641aee49c0114e604b6391e6c/raw/cdf327481113611077e9ddc787d10d45f126dfe1/waservice_example.json
+This package can use to authenticate your whatsapp, send and receive the message with node-red. Import the example from this https://gist.github.com/taufiksu/ad724c5641aee49c0114e604b6391e6c
