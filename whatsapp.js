@@ -5,6 +5,8 @@ module.exports = function (RED) {
     function whatsapp(config) {
         RED.nodes.createNode(this, config);
         var node = this;
+        var node_id = node.id;
+        node_id = node_id.replace(/\./g, "_");
 
         const client = new Client({
             restartOnAuthFail: true,
@@ -22,7 +24,8 @@ module.exports = function (RED) {
                 ],
             },
 
-            authStrategy: new LocalAuth({ clientId: node.id })
+            // authStrategy: new LocalAuth({ clientId: node.id })
+            authStrategy: new LocalAuth({ clientId: node_id })
         });
 
         client.initialize();
